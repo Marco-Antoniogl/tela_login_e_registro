@@ -1,6 +1,8 @@
 from tkinter import Tk, Label, Entry, Button, Frame
 from tkinter.constants import FLAT, SOLID
 from tkinter import ttk
+import tkinter as tk
+import sqlite3
 
 #Cores
 co0 = "#feffff" #branco
@@ -11,14 +13,43 @@ co5 = "#191970" #MidnightBlue
 
 #Autenticação de login
 
+
+def criar_tabela():
+    conn = sqlite3.connect("Banco.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS cadastro (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login TEXT NOT NULL UNIQUE,
+        senha TEXT NOT NULL
+    )
+""")
+    
+    conn.commit()
+    conn.close()
+
+
 def fazer_login():
     login = login_entry.get()
     senha = senha_entry.get()
+
+    conn = sqlite3.connect("Banco.db")
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT senha FROM cadastro WHERE login = '{}'".format(login))
+        login = cursor.fetchone()
+
+    except sqlite3.Error as e:
+        print("Erro ao executar consulta SQL:", e)
 
     if login == "" and senha == "":
         botao_label.config(text="Login realizado com sucesso!", fg="green")
     else:
         botao_label.config(text="Nome de usuário ou senha inválido!", fg="red")
+
+    conn.close()
 
 #Confg da Janela
 janela = Tk()
@@ -58,6 +89,6 @@ botao_entry.pack(pady=50)
 botao_label = Label(principal, text="", bg=co1,fg=co1)
 botao_label.pack()
 
-
+criar_tabela()
 
 janela.mainloop()
